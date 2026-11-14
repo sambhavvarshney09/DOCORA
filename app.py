@@ -13,7 +13,7 @@ from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from pathlib import Path
 
-load_dotenv(dotenv_path="/home/anonymous/Downloads/DOCORA/document-expiry-tracker-main/.env ", override=True)
+load_dotenv(override=True)
 
 print("DATABASE URL FOUND:", bool(os.getenv("DATABASE_URL")))
 print("DATABASE URL STARTS:", (os.getenv("DATABASE_URL") or "")[:20])
