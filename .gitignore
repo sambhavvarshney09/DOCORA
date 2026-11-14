@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+venv/
+__pycache__/
+*.pyc
+uploads/*
+!uploads/.gitkeep
+*.log
+/.env
+/.env.*
+!/.env.example
+/venv/
+/__pycache__/
+/uploads/*
+!/uploads/.gitkeep

@@ -1,0 +1,134 @@
+
+{% extends "base.html" %}
+
+{% block title %}Login | DOCORA{% endblock %}
+
+{% block content %}
+<section class="login-page">
+    <div class="login-showcase">
+        <a href="{{ url_for('index') }}" class="login-brand">
+            <span class="login-brand-icon">D</span>
+            <span>DOCORA</span>
+        </a>
+
+        <div class="showcase-content">
+            <span class="login-eyebrow">YOUR DOCUMENTS, IN CONTROL</span>
+            <h1>Everything important.<br><span>One place.</span></h1>
+            <p>Stay ahead of expiry dates, keep your files organised, and make every renewal on time.</p>
+
+            <div class="login-visual">
+                <div class="orbit orbit-one"></div>
+                <div class="orbit orbit-two"></div>
+
+                <div class="visual-document document-one">
+                    <span class="doc-symbol">▤</span>
+                    <span class="doc-line"></span>
+                    <span class="doc-line short"></span>
+                    <span class="doc-tag">SECURE</span>
+                </div>
+
+                <div class="visual-document document-two">
+                    <span class="doc-symbol">◷</span>
+                    <span class="doc-line"></span>
+                    <span class="doc-line short"></span>
+                    <span class="doc-tag purple-tag">RENEWAL</span>
+                </div>
+
+                <div class="visual-core">
+                    <div class="core-ring"></div>
+                    <span> D </span>
+                </div>
+
+                <div class="floating-dot dot-one"></div>
+                <div class="floating-dot dot-two"></div>
+                <div class="floating-dot dot-three"></div>
+            </div>
+        </div>
+
+        <div class="showcase-footer">
+            <span class="showcase-dot"></span>
+            Your personal document workspace
+        </div>
+    </div>
+
+    <div class="login-form-side">
+        <div class="login-form-wrap">
+            <div class="form-heading">
+                <span class="form-kicker">WELCOME BACK</span>
+                <h2>Sign in to DOCORA</h2>
+                <p>Enter your details to access your workspace.</p>
+            </div>
+
+            <form method="POST" class="modern-login-form">
+                <div class="login-field">
+                    <label for="email">Email address</label>
+                    <div class="input-wrap">
+                        <span class="field-icon">✉</span>
+                        <input
+                            id="email"
+                            type="email"
+                            name="email"
+                            placeholder="you@example.com"
+                            autocomplete="email"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <span class="field-icon">⌑</span>
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                        <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">
+                            Show
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="login-submit" id="loginSubmit">
+                    <span>Sign in</span>
+                    <span class="submit-arrow">→</span>
+                </button>
+            </form>
+
+            <div class="login-divider"><span>NEW TO DOCORA?</span></div>
+
+            <a href="{{ url_for('register') }}" class="create-account-link">
+                Create your account <span>↗</span>
+            </a>
+
+            <p class="login-privacy">Your documents are private to your account.</p>
+        </div>
+    </div>
+</section>
+
+<script>
+(() => {
+    const password = document.getElementById("password");
+    const toggle = document.getElementById("togglePassword");
+    const form = document.querySelector(".modern-login-form");
+    const submit = document.getElementById("loginSubmit");
+
+    toggle.addEventListener("click", () => {
+        const showing = password.type === "text";
+        password.type = showing ? "password" : "text";
+        toggle.textContent = showing ? "Show" : "Hide";
+        toggle.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+    });
+
+    form.addEventListener("submit", () => {
+        submit.classList.add("is-loading");
+        submit.querySelector("span:first-child").textContent = "Signing in...";
+        submit.querySelector(".submit-arrow").textContent = "•••";
+    });
+})();
+</script>
+{% endblock %}

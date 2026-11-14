@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | DOCORA{% endblock %}
+{% block content %}
+{% set safe = [total - upcoming - expired, 0]|max %}
+{% set safe_pct = (safe / total * 100) if total else 0 %}
+{% set upcoming_pct = (upcoming / total * 100) if total else 0 %}
+{% set expired_pct = (expired / total * 100) if total else 0 %}
+
+<div class="dashboard">
+    <section class="dashboard-welcome">
+        <div>
+            <p class="dashboard-eyebrow">YOUR WORKSPACE</p>
+            <h1>Good morning, {{ session.get('name', 'there') }} <span>👋</span></h1>
+            <p>Here's an overview of your documents</p>
+        </div>
+        <a href="{{ url_for('add_document') }}" class="dashboard-add-btn"><span>＋</span> Add document</a>
+    </section>
+
+    <div class="dashboard-layout">
+        <div class="dashboard-primary">
+            <section class="dashboard-stats">
+                <article class="stat-card stat-total">
+                    <div class="stat-icon">▤</div>
+                    <div class="stat-content"><span>Total Documents</span><strong>{{ total }}</strong><small>In your workspace</small></div>
+                </article>
+                <article class="stat-card stat-safe">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-content"><span>Safe</span><strong>{{ safe }}</strong><small>More than 30 days left</small></div>
+                </article>
+                <article class="stat-card stat-upcoming">
+                    <div class="stat-icon">◷</div>
+                    <div class="stat-content"><span>Expiring Soon</span><strong>{{ upcoming }}</strong><small>Within 30 days</small></div>
+                </article>
+                <article class="stat-card stat-expired">
+                    <div class="stat-icon">!</div>
+                    <div class="stat-content"><span>Expired</span><strong>{{ expired }}</strong><small>Action required</small></div>
+                </article>
+            </section>
+
+            <section class="dashboard-middle">
+                <article class="dashboard-card document-status-card">
+                    <div class="dashboard-card-heading">
+                        <div><h2>Document Status</h2><p>Overview of your document expiry status</p></div>
+                        <span class="dashboard-live"><i></i> Live overview</span>
+                    </div>
+                    <div class="status-chart-layout">
+                        <div class="health-donut" style="--safe: {{ safe_pct }}%; --upcoming: {{ upcoming_pct }}%; --expired: {{ expired_pct }}%;">
+                            <div class="health-donut-inner"><strong id="health-count">{{ total }}</strong><span id="health-label">Documents</span></div>
+                        </div>
+                        <div class="health-breakdown">
+                            <button class="health-item active" type="button" onclick="showHealth('{{ total }}', 'Documents', this)">
+                                <span><i class="health-dot all"></i>All documents</span><b>{{ total }}</b><small>100%</small>
+                            </button>
+                            <button class="health-item" type="button" onclick="showHealth('{{ safe }}', 'Safe', this)">
+                                <span><i class="health-dot safe"></i>Safe</span><b>{{ safe }}</b><small>{{ safe_pct|round|int }}%</small>
+                            </button>
+                            <button class="health-item" type="button" onclick="showHealth('{{ upcoming }}', 'Expiring soon', this)">
+                                <span><i class="health-dot upcoming"></i>Expiring Soon</span><b>{{ upcoming }}</b><small>{{ upcoming_pct|round|int }}%</small>
+                            </button>
+                            <button class="health-item" type="button" onclick="showHealth('{{ expired }}', 'Expired', this)">
+                                <span><i class="health-dot expired"></i>Expired</span><b>{{ expired }}</b><small>{{ expired_pct|round|int }}%</small>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="dashboard-card upcoming-card">
+                    <div class="dashboard-card-heading">
+                        <div><h2>Upcoming Expiry</h2><p>Next 30 days</p></div>
+                        <a href="{{ url_for('documents') }}">View All <span>→</span></a>
+                    </div>
+                    {% if expiring_docs %}
+                    <div class="upcoming-list">
+                        {% for d in expiring_docs[:5] %}
+                        <div class="upcoming-item">
+                            <div class="upcoming-file-icon">▤</div>
+                            <div class="upcoming-file-info"><strong>{{ d.document_name }}</strong><small>{{ d.category }}</small></div>
+                            <span class="upcoming-days {{ 'urgent' if days_left(d.expiry_date) <= 7 else '' }}">
+                                {% if days_left(d.expiry_date) < 0 %}Expired{% elif days_left(d.expiry_date) == 0 %}Today{% else %}{{ days_left(d.expiry_date) }} days{% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="upcoming-empty"><span>✓</span><strong>All clear!</strong><p>No documents expiring within 30 days.</p></div>
+                    {% endif %}
+                </article>
+            </section>
+
+            <section class="dashboard-card recent-documents-card">
+                <div class="dashboard-card-heading">
+                    <div><h2>Recent Documents</h2><p>Your recently added documents</p></div>
+                    <a href="{{ url_for('documents') }}">View All <span>→</span></a>
+                </div>
+                <div class="dashboard-table-wrap">
+                    <table class="dashboard-table">
+                        <thead><tr><th>Document</th><th>Category</th><th>Expiry Date</th><th>Status</th></tr></thead>
+                        <tbody>
+                        {% for d in documents[:8] %}
+                            {% set status = document_status(d.expiry_date) %}
+                            <tr>
+                                <td><div class="table-document"><span class="table-document-icon">▤</span><strong>{{ d.document_name }}</strong></div></td>
+                                <td>{{ d.category }}</td>
+                                <td>{{ d.expiry_date.strftime('%d %b %Y') }}</td>
+                                <td><span class="badge {{ status|lower|replace(' ', '-') }}"><i></i>{{ status }}</span></td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="4" class="dashboard-empty-row"><span>▤</span><strong>No documents yet</strong><small>Add your first document to get started.</small><a href="{{ url_for('add_document') }}">＋ Add document</a></td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <aside class="dashboard-rail">
+            <section class="reminder-promo">
+                <div class="promo-icon">♧</div>
+                <h2>Stay Updated</h2>
+                <p>Get notified before your documents expire</p>
+                <a href="{{ url_for('add_document') }}">＋ Add a document</a>
+            </section>
+            <section class="dashboard-card quick-actions-card">
+                <h2>Quick Actions</h2>
+                <a href="{{ url_for('add_document') }}" class="quick-action"><span>＋</span><strong>Add New Document</strong><b>›</b></a>
+                <a href="{{ url_for('documents') }}" class="quick-action"><span>▤</span><strong>View All Documents</strong><b>›</b></a>
+            </section>
+            <section class="dashboard-card calendar-card">
+                <div class="calendar-heading"><h2>Calendar</h2><span>October 2026</span></div>
+                <div class="calendar-grid calendar-week"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+                <div class="calendar-grid calendar-days">
+                    {% for day in [28,29,30,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,1] %}
+                    <span class="{{ 'muted-day' if loop.index <= 3 or loop.index == 35 else '' }} {{ 'today' if day == 3 and loop.index == 6 else '' }}">{{ day }}</span>
+                    {% endfor %}
+                </div>
+                <div class="calendar-legend"><span><i></i>Expiring soon</span><span><i></i>Expired</span></div>
+            </section>
+        </aside>
+    </div>
+</div>
+<script>
+function showHealth(count, label, button) {
+    document.getElementById("health-count").textContent = count;
+    document.getElementById("health-label").textContent = label;
+    document.querySelectorAll(".health-item").forEach(item => item.classList.remove("active"));
+    button.classList.add("active");
+}
+</script>
+{% endblock %}

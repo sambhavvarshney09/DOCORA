@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="auth-card">
+    <div class="otp-icon">✉️</div>
+    <h1>Create account</h1>
+    <p>Enter your details. We'll send a 6-digit OTP to verify your email.</p>
+    <form method="POST">
+        <label>Full Name</label>
+        <input type="text" name="name" required>
+
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@example.com" required>
+
+        <label>Password</label>
+        <input type="password" name="password" minlength="6" required>
+
+        <button class="btn primary full">Send OTP</button>
+    </form>
+    <p class="muted">Already registered? <a href="{{ url_for('login') }}">Login</a></p>
+</div>
+{% endblock %}

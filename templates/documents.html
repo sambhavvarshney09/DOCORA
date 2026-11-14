@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}My Documents{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><p class="eyebrow">DOCUMENT MANAGEMENT</p><h1>My Documents</h1><p class="muted">Search, filter, renew and manage your documents.</p></div>
+    <a class="btn primary" href="{{ url_for('add_document') }}">+ Add Document</a>
+</div>
+
+<form class="filterbar" method="GET">
+    <input name="search" value="{{ search }}" placeholder="Search document or category...">
+    <select name="category">
+        <option value="">All Categories</option>
+        {% for c in ['Identity','Travel','Vehicle','Insurance','Certificate','Education','Business','Other'] %}
+        <option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+    </select>
+    <select name="status">
+        <option value="">All Statuses</option>
+        <option {% if status == 'Active' %}selected{% endif %}>Active</option>
+        <option {% if status == 'Expiring Soon' %}selected{% endif %}>Expiring Soon</option>
+        <option {% if status == 'Critical' %}selected{% endif %}>Critical</option>
+        <option {% if status == 'Expired' %}selected{% endif %}>Expired</option>
+    </select>
+    <button class="btn secondary">Filter</button>
+</form>
+
+<div class="panel">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Document</th><th>Category</th><th>Expiry</th><th>Reminder</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            {% for d in documents %}
+            <tr>
+                <td>
+                    <strong>{{ d.document_name }}</strong>
+                    {% if d.file_name %}<a class="file-link" target="_blank" href="{{ url_for('uploaded_file', filename=d.file_name) }}">View file</a>{% endif %}
+                </td>
+                <td>{{ d.category }}</td>
+                <td>{{ d.expiry_date.strftime('%d %b %Y') }}</td>
+                <td>{{ d.reminder_days }} days</td>
+                <td><span class="badge {{ document_status(d.expiry_date)|lower|replace(' ', '-') }}">{{ document_status(d.expiry_date) }}</span></td>
+                <td>
+                    <form class="inline-form" method="POST" action="{{ url_for('renew_document', doc_id=d.id) }}">
+                        <input type="date" name="new_expiry_date" required>
+                        <button class="btn small secondary">Renew</button>
+                    </form>
+                    <form class="inline-form" method="POST" action="{{ url_for('delete_document', doc_id=d.id) }}" onsubmit="return confirm('Delete this document?')">
+                        <button class="btn small danger-btn">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="empty">No documents found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+
+{% extends "base.html" %}
+
+{% block title %}DOCORA — Smart Document Management{% endblock %}
+
+{% block content %}
+<section class="landing">
+
+    <div class="landing-hero">
+        <div class="hero-copy">
+            <span class="eyebrow">SMART DOCUMENT MANAGEMENT</span>
+            <h1>Never miss an<br>important document<br>renewal.</h1>
+            <p>Store documents, track expiry dates and identify documents that need attention from one simple dashboard.</p>
+
+            <div class="hero-actions">
+                <a href="{{ url_for('register') }}" class="btn primary">Get Started <span>↗</span></a>
+                <a href="{{ url_for('login') }}" class="btn secondary">Login</a>
+            </div>
+
+            <div class="hero-note">
+                <span class="note-dot"></span>
+                Your documents. One organised place.
+            </div>
+        </div>
+
+        <div class="visual-panel">
+            <div class="visual-top">          
+                <span>YOUR DOCUMENT HEALTH</span>
+                <span class="live-label"><i></i> LIVE PREVIEW</span>
+            </div>
+
+            <div class="main-ring-wrap">
+                <svg class="main-ring" viewBox="0 0 220 220">
+                    <circle class="ring-track" cx="110" cy="110" r="88"/>
+                    <circle class="ring-progress" cx="110" cy="110" r="88"/>
+                </svg>
+                <div class="ring-center">
+                    <strong id="mainPercent">78%</strong>
+                    <span>Organised</span>
+                </div>
+            </div>
+
+            <div class="visual-caption">
+                <strong id="visualTitle">Looking good!</strong>
+                <span id="visualDescription">Most documents are in order.</span>
+            </div>
+
+            <div class="ring-tabs">
+                <button class="ring-tab active" data-value="78" data-title="Looking good!" data-description="Most documents are in order.">Overview</button>
+                <button class="ring-tab" data-value="92" data-title="Well protected" data-description="Your important files are organised.">Storage</button>
+                <button class="ring-tab" data-value="64" data-title="Stay on track" data-description="A few renewals need your attention.">Renewals</button>
+            </div>
+
+            <div class="mini-rings">
+                <div class="mini-ring-item">
+                    <div class="mini-ring blue">
+                        <svg viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="32"/>
+                            <circle class="mini-progress" cx="40" cy="40" r="32" style="--progress: .82"/>
+                        </svg>
+                        <span>82%</span>
+                    </div>
+                    <small>Active</small>
+                </div>
+
+                <div class="mini-ring-item">
+                    <div class="mini-ring purple">
+                        <svg viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="32"/>
+                            <circle class="mini-progress" cx="40" cy="40" r="32" style="--progress: .64"/>
+                        </svg>
+                        <span>64%</span>
+                    </div>
+                    <small>Renewals</small>
+                </div>
+
+                <div class="mini-ring-item">
+                    <div class="mini-ring orange">
+                        <svg viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="32"/>
+                            <circle class="mini-progress" cx="40" cy="40" r="32" style="--progress: .28"/>
+                        </svg>
+                        <span>28%</span>
+                    </div>
+                    <small>Attention</small>
+                </div>
+            </div>
+            <span class="demo-disclaimer">Illustrative preview · Your dashboard uses your documents</span>
+        </div>
+    </div>
+
+    <div class="landing-bottom">
+        <div>
+            <span class="bottom-index">01 / SIMPLE</span>
+            <h3>Everything in one place.</h3>
+            <p>Keep your important files organised and easy to find.</p>
+        </div>
+        <div>
+            <span class="bottom-index">02 / SMART</span>
+            <h3>Know what needs attention.</h3>
+            <p>See upcoming renewals before they become a problem.</p>
+        </div>
+        <div>
+            <span class="bottom-index">03 / SECURE</span>
+            <h3>Your files stay yours.</h3>
+            <p>Access your personal documents in one private workspace.</p>
+        </div>
+    </div>
+</section>
+
+<script>
+document.querySelectorAll(".ring-tab").forEach((button) => {
+    button.addEventListener("click", () => {
+        document.querySelectorAll(".ring-tab").forEach((tab) => tab.classList.remove("active"));
+        button.classList.add("active");
+
+        document.getElementById("mainPercent").textContent = button.dataset.value + "%";
+        document.getElementById("visualTitle").textContent = button.dataset.title;
+        document.getElementById("visualDescription").textContent = button.dataset.description;
+
+        document.querySelector(".ring-progress").style.strokeDashoffset =
+            553 - (553 * Number(button.dataset.value) / 100);
+    });
+});
+</script>
+{% endblock %}

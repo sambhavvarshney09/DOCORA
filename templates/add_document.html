@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Add Document{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><p class="eyebrow">DOCUMENT MANAGEMENT</p><h1>Add Document</h1><p class="muted">Enter the document details and expiry information.</p></div>
+</div>
+
+<div class="form-card">
+<form method="POST" enctype="multipart/form-data">
+    <div class="form-grid">
+        <div>
+            <label>Document Name *</label>
+            <input type="text" name="document_name" placeholder="e.g. Driving Licence" required>
+        </div>
+        <div>
+            <label>Category *</label>
+            <select name="category" required>
+                <option value="">Select category</option>
+                <option>Identity</option>
+                <option>Travel</option>
+                <option>Vehicle</option>
+                <option>Insurance</option>
+                <option>Certificate</option>
+                <option>Education</option>
+                <option>Business</option>
+                <option>Other</option>
+            </select>
+        </div>
+        <div>
+            <label>Issue Date *</label>
+            <input type="date" name="issue_date" required>
+        </div>
+        <div>
+            <label>Expiry Date *</label>
+            <input type="date" name="expiry_date" required>
+        </div>
+        <div>
+            <label>Reminder Before Expiry (days)</label>
+            <input type="number" name="reminder_days" value="30" min="1" max="365" required>
+        </div>
+        <div>
+            <label>Upload PDF / Image</label>
+            <input type="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+        </div>
+    </div>
+    <button class="btn primary">Save Document</button>
+</form>
+</div>
+{% endblock %}

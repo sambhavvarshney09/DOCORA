@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1020">
+
+    <title>{% block title %}DOCORA{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="{% if session.get('user_id') %}app-body{% else %}public-body{% endif %}">
+
+{% if session.get('user_id') %}
+<div class="app-shell">
+
+    <aside class="sidebar">
+        <a href="{{ url_for('dashboard') }}" class="brand">
+            <span class="brand-mark">D</span>
+            <span>
+                <span class="brand-name">DOCORA</span>
+                <small class="brand-caption">WORKSPACE</small>
+            </span>
+        </a>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}"
+               class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <span class="nav-icon">⌂</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('documents') }}"
+               class="nav-link {% if request.endpoint == 'documents' %}active{% endif %}">
+                <span class="nav-icon">▤</span>
+                <span>My Documents</span>
+            </a>
+
+            <a href="{{ url_for('add_document') }}"
+               class="nav-link {% if request.endpoint == 'add_document' %}active{% endif %}">
+                <span class="nav-icon">＋</span>
+                <span>Add Document</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    {{ (session.get('name') or 'U')[0]|upper }}
+                </div>
+                <div class="user-info">
+                    <strong>{{ session.get('name', 'User') }}</strong>
+                    <span>Personal workspace</span>
+                </div>
+            </div>
+
+            <a href="{{ url_for('logout') }}" class="logout-link">
+                <span class="nav-icon">↪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="main-area">
+        
+
+<header class="topbar">
+    <div class="topbar-search">
+        <span class="search-icon">⌕</span>
+        <input
+            type="search"
+            placeholder="Search documents, categories..."
+            aria-label="Search documents"
+        >
+    </div>
+
+    <div class="topbar-right">
+        <button class="topbar-icon-btn" type="button" aria-label="Theme">
+            ☼
+        </button>
+
+        <button class="topbar-icon-btn notification-btn" type="button" aria-label="Notifications">
+            ♧
+            <span class="notification-dot"></span>
+        </button>
+
+        <span class="topbar-divider"></span>
+
+        <div class="topbar-profile">
+            <div class="topbar-avatar">
+                {{ (session.get('name') or 'U')[0]|upper }}
+            </div>
+
+            <div class="topbar-user-info">
+                <strong>{{ session.get('name', 'User') }}</strong>
+                <span>Personal workspace</span>
+            </div>
+
+            <span class="profile-chevron">⌄</span>
+        </div>
+    </div>
+</header>
+
+        <main class="workspace">
+{% else %}
+<main class="container public-container">
+{% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+{% if session.get('user_id') %}
+        </main>
+
+        <footer class="app-footer">
+            <span>© 2026 DOCORA</span>
+            <span>Keep your documents organised.</span>
+        </footer>
+    </div>
+</div>
+{% else %}
+</main>
+
+<footer class="public-footer">
+    © 2026 DOCORA · Never miss an important expiry date.
+</footer>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

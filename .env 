@@ -1,0 +1,12 @@
+SECRET_KEY=6c2b4eee3f06d05a394b8ae301e6d232780bca26171bf6ad54faebbb1bf27168
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=document_tracker
+DATABASE_URL=postgresql://neondb_owner:npg_MZ8fGLzYb2Ov@ep-empty-voice-b5uk3yp4-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+SMTP_EMAIL=varshneysambhav941@gmail.com
+SMTP_PASSWORD=gszrvazauopxojsl
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+BREVO_API_KEY=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
+SMTP_USER=varshneysambhav941@gmail.com
