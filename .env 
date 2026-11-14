@@ -3,7 +3,7 @@ DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=document_tracker
-DATABASE_URL=postgresql://neondb_owner:npg_MZ8fGLzYb2Ov@ep-empty-voice-b5uk3yp4-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+postgresql://docora_user:uitboL5KCRL1jPDM67ZiOI8PXZlOVq77@dpg-dbsbial6e07s739cuecg-a/docora
 SMTP_EMAIL=varshneysambhav941@gmail.com
 SMTP_PASSWORD=gszrvazauopxojsl
 SMTP_SERVER=smtp.gmail.com
