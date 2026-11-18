@@ -1,6 +1,8 @@
 import os
 import random
 import smtplib
+import io
+import re
 from datetime import date, datetime, timedelta
 from functools import wraps
 import resend
@@ -12,6 +14,18 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from pathlib import Path
+
+# OCR dependencies (install via requirements.txt)
+try:
+    import pytesseract
+    from PIL import Image, ImageOps, ImageEnhance
+    from pdf2image import convert_from_bytes
+except ImportError:
+    pytesseract = None
+    Image = None
+    ImageOps = None
+    ImageEnhance = None
+    convert_from_bytes = None
 
 load_dotenv()  # Render environment variables take priority over local .env values.
 
@@ -25,6 +39,8 @@ app.secret_key = os.getenv("SECRET_KEY", "change-this-secret-key")
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg", "webp"}
+MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB upload limit
+app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -79,6 +95,84 @@ def index():
         return redirect(url_for("dashboard"))
     return render_template("index.html")
 
+
+
+def extract_text_from_upload(upload):
+    """Extract text from an uploaded image or PDF using Tesseract OCR."""
+    if pytesseract is None or Image is None:
+        raise RuntimeError("OCR dependencies are missing. Install pytesseract, Pillow and pdf2image.")
+
+    filename = (upload.filename or "").lower()
+    raw = upload.read()
+    if not raw:
+        raise ValueError("The uploaded file is empty.")
+
+    def image_to_text(image):
+        # Convert to grayscale and improve contrast for clearer OCR.
+        image = ImageOps.grayscale(image)
+        image = ImageEnhance.Contrast(image).enhance(1.5)
+        return pytesseract.image_to_string(image, config="--oem 3 --psm 6")
+
+    if filename.endswith(".pdf"):
+        if convert_from_bytes is None:
+            raise RuntimeError("PDF OCR dependency is missing. Install pdf2image and Poppler.")
+        pages = convert_from_bytes(raw, dpi=220, first_page=1, last_page=5)
+        return "\n".join(image_to_text(page) for page in pages).strip()
+
+    if filename.endswith((".png", ".jpg", ".jpeg", ".webp")):
+        with Image.open(io.BytesIO(raw)) as image:
+            return image_to_text(image).strip()
+
+    raise ValueError("Only PDF, PNG, JPG, JPEG and WEBP files are supported.")
+
+
+def suggest_document_fields(text):
+    """Return conservative OCR suggestions; user must verify before saving."""
+    clean = " ".join((text or "").split())
+    lower = clean.lower()
+    category = "Other"
+    keywords = {
+        "Identity": ("passport", "aadhaar", "aadhar", "identity", "voter"),
+        "Driving Licence": ("driving licence", "driving license", " dl no", "licence number"),
+        "Vehicle": ("registration certificate", "vehicle", "rc number", "chassis"),
+        "Insurance": ("insurance", "policy number", "premium"),
+        "Education": ("university", "marksheet", "certificate", "degree", "enrollment"),
+        "Employment": ("employment", "appointment letter", "employee id")
+    }
+    for label, terms in keywords.items():
+        if any(term in lower for term in terms):
+            category = label
+            break
+
+    # Find date-like values. Ambiguous dates are returned for review, not auto-saved.
+    date_candidates = re.findall(r"\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})\b", text or "")
+    return {
+        "suggested_category": category,
+        "date_candidates": list(dict.fromkeys(date_candidates))[:10],
+        "text_preview": clean[:1200]
+    }
+
+
+@app.route("/api/ocr-scan", methods=["POST"])
+@login_required
+def ocr_scan():
+    """Authenticated OCR endpoint for the document upload UI."""
+    upload = request.files.get("file")
+    if not upload or not upload.filename:
+        return {"success": False, "error": "Please choose a PDF or image file."}, 400
+    if not allowed_file(upload.filename):
+        return {"success": False, "error": "Unsupported file type."}, 400
+
+    try:
+        extracted = extract_text_from_upload(upload)
+        if not extracted:
+            return {"success": False, "error": "No readable text found. Try a clearer scan."}, 422
+        result = suggest_document_fields(extracted)
+        return {"success": True, **result}, 200
+    except Exception as exc:
+        # Log the technical detail on the server; return a safe message to the browser.
+        app.logger.exception("OCR scan failed")
+        return {"success": False, "error": str(exc)}, 500
 
 
 def send_otp_email(recipient, otp):
