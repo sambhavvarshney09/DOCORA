@@ -122,7 +122,8 @@ def send_otp_email(recipient, otp):
             json=data,
             timeout=20
         )
-
+        print( "BREVO STATUS:", response.status_code)
+        print("BREVO RESPONSE:", response.text)
         print("Brevo response:", response.status_code, response.text)
 
         if response.status_code in (200, 201):
