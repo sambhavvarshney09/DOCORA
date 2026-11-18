@@ -13,9 +13,11 @@ from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from pathlib import Path
 
-load_dotenv(override=True)
+load_dotenv()  # Render environment variables take priority over local .env values.
 
 print("DATABASE URL FOUND:", bool(os.getenv("DATABASE_URL")))
+print("BREVO KEY LOADED:", bool(os.getenv("BREVO_API_KEY")))
+print("SENDER EMAIL LOADED:", bool(os.getenv("SMTP_USER")))
 print("DATABASE URL STARTS:", (os.getenv("DATABASE_URL") or "")[:20])
 
 app = Flask(__name__)
