@@ -2,48 +2,210 @@
 {% block title %}Add Document{% endblock %}
 {% block content %}
 <div class="page-head">
-    <div><p class="eyebrow">DOCUMENT MANAGEMENT</p><h1>Add Document</h1><p class="muted">Enter the document details and expiry information.</p></div>
+    <div>
+        <p class="eyebrow">DOCUMENT MANAGEMENT</p>
+        <h1>Add Document</h1>
+        <p class="muted">Upload a document and use OCR to suggest its details, or enter them manually.</p>
+    </div>
 </div>
 
 <div class="form-card">
-<form method="POST" enctype="multipart/form-data">
-    <div class="form-grid">
-        <div>
-            <label>Document Name *</label>
-            <input type="text" name="document_name" placeholder="e.g. Driving Licence" required>
+    <form method="POST" enctype="multipart/form-data" id="addDocumentForm">
+        <div class="form-grid">
+            <div>
+                <label for="document_name">Document Name *</label>
+                <input type="text" id="document_name" name="document_name" placeholder="e.g. Driving Licence" required>
+            </div>
+            <div>
+                <label for="category">Category *</label>
+                <select id="category" name="category" required>
+                    <option value="">Select category</option>
+                    <option>Identity</option>
+                    <option>Travel</option>
+                    <option>Vehicle</option>
+                    <option>Insurance</option>
+                    <option>Certificate</option>
+                    <option>Education</option>
+                    <option>Business</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div>
+                <label for="issue_date">Issue Date *</label>
+                <input type="date" id="issue_date" name="issue_date" required>
+            </div>
+            <div>
+                <label for="expiry_date">Expiry Date *</label>
+                <input type="date" id="expiry_date" name="expiry_date" required>
+            </div>
+            <div>
+                <label for="reminder_days">Reminder Before Expiry (days)</label>
+                <input type="number" id="reminder_days" name="reminder_days" value="30" min="1" max="365" required>
+            </div>
+            <div>
+                <label for="document_file">Upload PDF / Image</label>
+                <input type="file" id="document_file" name="file" accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp">
+                <p class="muted" style="font-size:12px;margin-top:6px;">Maximum upload size: 10 MB.</p>
+            </div>
         </div>
-        <div>
-            <label>Category *</label>
-            <select name="category" required>
-                <option value="">Select category</option>
-                <option>Identity</option>
-                <option>Travel</option>
-                <option>Vehicle</option>
-                <option>Insurance</option>
-                <option>Certificate</option>
-                <option>Education</option>
-                <option>Business</option>
-                <option>Other</option>
-            </select>
+
+        <div style="margin:18px 0;padding:16px;border:1px solid var(--border-color, #333);border-radius:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div>
+                    <p class="eyebrow" style="margin:0 0 5px;">SMART SCANNER</p>
+                    <h3 style="margin:0;">Scan document with OCR</h3>
+                    <p class="muted" style="margin:5px 0 0;">Extract text and review possible dates before saving.</p>
+                </div>
+                <button type="button" class="btn primary" id="scanOcrBtn">Scan with OCR</button>
+            </div>
+            <p id="ocrStatus" class="muted" role="status" aria-live="polite" style="margin:12px 0 0;"></p>
+            <div id="ocrResults" hidden style="margin-top:14px;">
+                <p style="font-weight:600;margin-bottom:8px;">Date candidates found</p>
+                <p class="muted" style="font-size:13px;margin-top:0;">OCR cannot always tell which date is the issue date or expiry date. Select the correct dates below.</p>
+                <div id="ocrDateCandidates" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:14px;">
+                    <div>
+                        <label for="ocrIssueDate">Use selected date as Issue Date</label>
+                        <select id="ocrIssueDate"><option value="">Choose a detected date</option></select>
+                        <button type="button" class="btn" id="applyIssueDate" style="margin-top:8px;">Apply issue date</button>
+                    </div>
+                    <div>
+                        <label for="ocrExpiryDate">Use selected date as Expiry Date</label>
+                        <select id="ocrExpiryDate"><option value="">Choose a detected date</option></select>
+                        <button type="button" class="btn" id="applyExpiryDate" style="margin-top:8px;">Apply expiry date</button>
+                    </div>
+                </div>
+                <details style="margin-top:14px;">
+                    <summary style="cursor:pointer;font-weight:600;">View extracted text</summary>
+                    <pre id="ocrTextPreview" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto;padding:12px;border-radius:8px;background:rgba(127,127,127,.12);font-size:12px;"></pre>
+                </details>
+            </div>
         </div>
-        <div>
-            <label>Issue Date *</label>
-            <input type="date" name="issue_date" required>
-        </div>
-        <div>
-            <label>Expiry Date *</label>
-            <input type="date" name="expiry_date" required>
-        </div>
-        <div>
-            <label>Reminder Before Expiry (days)</label>
-            <input type="number" name="reminder_days" value="30" min="1" max="365" required>
-        </div>
-        <div>
-            <label>Upload PDF / Image</label>
-            <input type="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.webp">
-        </div>
-    </div>
-    <button class="btn primary">Save Document</button>
-</form>
+
+        <button type="submit" class="btn primary">Save Document</button>
+    </form>
 </div>
+
+<script>
+(() => {
+    const fileInput = document.getElementById('document_file');
+    const scanButton = document.getElementById('scanOcrBtn');
+    const status = document.getElementById('ocrStatus');
+    const results = document.getElementById('ocrResults');
+    const candidatesBox = document.getElementById('ocrDateCandidates');
+    const issueSelect = document.getElementById('ocrIssueDate');
+    const expirySelect = document.getElementById('ocrExpiryDate');
+    const issueInput = document.getElementById('issue_date');
+    const expiryInput = document.getElementById('expiry_date');
+    const categorySelect = document.getElementById('category');
+    const textPreview = document.getElementById('ocrTextPreview');
+
+    // Convert common OCR date formats to the yyyy-mm-dd format required by input[type=date].
+    function toIsoDate(value) {
+        const s = String(value || '').trim();
+        let y, m, d;
+        let match = s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+        if (match) {
+            y = Number(match[1]); m = Number(match[2]); d = Number(match[3]);
+        } else {
+            match = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
+            if (!match) return '';
+            d = Number(match[1]); m = Number(match[2]); y = Number(match[3]);
+            if (y < 100) y += y >= 50 ? 1900 : 2000;
+        }
+        const date = new Date(Date.UTC(y, m - 1, d));
+        if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) return '';
+        return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+
+    function addDateOptions(select, dates) {
+        select.innerHTML = '<option value="">Choose a detected date</option>';
+        dates.forEach(date => {
+            const iso = toIsoDate(date);
+            if (!iso) return;
+            const option = document.createElement('option');
+            option.value = iso;
+            option.textContent = `${date} (${iso})`;
+            select.appendChild(option);
+        });
+    }
+
+    scanButton.addEventListener('click', async () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) {
+            status.textContent = 'Please choose a PDF or image first.';
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            status.textContent = 'File is larger than 10 MB. Please choose a smaller file.';
+            return;
+        }
+
+        const allowed = /\.(pdf|png|jpe?g|webp)$/i.test(file.name);
+        if (!allowed) {
+            status.textContent = 'Unsupported file. Choose PDF, PNG, JPG, JPEG or WEBP.';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        scanButton.disabled = true;
+        scanButton.textContent = 'Scanning...';
+        status.textContent = 'Reading document. This may take a few seconds...';
+        results.hidden = true;
+
+        try {
+            const response = await fetch('{{ url_for("ocr_scan") }}', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'OCR scan failed. Please try another file.');
+            }
+
+            // Map OCR suggestions onto the categories available in the existing form.
+            const suggested = String(data.suggested_category || '').toLowerCase();
+            const categoryMap = {
+                'identity': 'Identity', 'travel': 'Travel', 'vehicle': 'Vehicle',
+                'driving licence': 'Vehicle', 'insurance': 'Insurance',
+                'certificate': 'Certificate', 'education': 'Education',
+                'business': 'Business', 'employment': 'Business', 'other': 'Other'
+            };
+            if (categoryMap[suggested]) categorySelect.value = categoryMap[suggested];
+
+            const dates = Array.isArray(data.date_candidates) ? data.date_candidates : [];
+            addDateOptions(issueSelect, dates);
+            addDateOptions(expirySelect, dates);
+            candidatesBox.innerHTML = '';
+            if (dates.length) {
+                dates.forEach(date => {
+                    const chip = document.createElement('span');
+                    chip.textContent = date;
+                    chip.style.cssText = 'padding:6px 10px;border-radius:999px;background:rgba(127,127,127,.16);font-size:13px;';
+                    candidatesBox.appendChild(chip);
+                });
+            } else {
+                candidatesBox.textContent = 'No recognizable dates found. Please enter dates manually.';
+            }
+            textPreview.textContent = data.text_preview || 'No text preview available.';
+            results.hidden = false;
+            status.textContent = 'OCR completed. Please verify every suggested detail before saving.';
+        } catch (error) {
+            status.textContent = error.message;
+        } finally {
+            scanButton.disabled = false;
+            scanButton.textContent = 'Scan with OCR';
+        }
+    });
+
+    document.getElementById('applyIssueDate').addEventListener('click', () => {
+        if (issueSelect.value) issueInput.value = issueSelect.value;
+    });
+    document.getElementById('applyExpiryDate').addEventListener('click', () => {
+        if (expirySelect.value) expiryInput.value = expirySelect.value;
+    });
+})();
+</script>
 {% endblock %}
